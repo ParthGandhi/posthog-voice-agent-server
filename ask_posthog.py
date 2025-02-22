@@ -109,7 +109,7 @@ def _select_posthog_insight(
                 "content": [
                     {
                         "type": "text",
-                        "text": "[{'id': 0, 'name': 'Pageview funnel, by browser - This example funnel shows how many of your users have completed 3 page views, broken down by browser.'}, {'id': 1, 'name': 'Referring domain (last 14 days) - Shows the most common referring domains for your users over the past 14 days.'}, {'id': 2, 'name': 'Growth accounting - How many of your users are new, returning, resurrecting, or dormant each week.'}, {'id': 3, 'name': 'Retention - Weekly retention of your users.'}, {'id': 4, 'name': 'Weekly active users (WAUs) - Shows the number of unique users that use your app every week.'}, {'id': 5, 'name': 'Daily active users (DAUs) - Shows the number of unique users that use your app every day.'}]",
+                        "text": json.dumps(insight_options),
                     }
                 ],
             },
