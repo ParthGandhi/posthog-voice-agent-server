@@ -140,7 +140,7 @@ def _select_posthog_insight(
         max_completion_tokens=2048,
     )
 
-    response_json = json.loads(response.choices[0].message.content)
+    response_json = json.loads(response.choices[0].message.content)  # type: ignore
     print(response_json)
 
     return insights[int(response_json["final_answer"])]
@@ -168,7 +168,65 @@ async def _execute_posthog_query(query: str) -> PostHogResults:
 
 
 async def _generate_insight_summary(insight: PostHogInsight) -> str:
-    return ""
+    analytics_results = insight.result
+    analytics_metric_name = f"{insight.name} - {insight.description}"
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important bits.",
+                    }
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(analytics_results),
+                    }
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": f"Metric: {analytics_metric_name}"}
+                ],
+            },
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "analytics_summary",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "type": "string",
+                            "description": "A detailed analysis of the user question and the analytics results",
+                        },
+                        "final_answer": {
+                            "type": "string",
+                            "description": "The summary of the analytics",
+                        },
+                    },
+                    "required": ["explanation", "final_answer"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        temperature=0.3,
+        max_completion_tokens=2048,
+        top_p=1,
+    )
+    response_json = json.loads(response.choices[0].message.content)  # type: ignore
+    print(response_json)
+    return response_json["final_answer"]
 
 
 async def ask(user_input: str) -> str:
