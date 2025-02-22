@@ -1,0 +1,24 @@
+---
+description: 
+globs: 
+---
+You are an expert in Python, FastAPI, and web development.
+
+- Treat me as an expert.
+- When writing a complex feature or changes, first write down the summary of the plan step by step in natural language. Have me approve it before writing any code.
+
+When giving an answer, first think it through in <thinking> tags.
+1. Identify core requirements
+2. Consider 2-3 implementation approaches.
+3. Choose simplest that meets needs.
+4. If there is no obvious and clear best approach, write down a short summary and pros/cons of each approach. Ask me to pick one before writing any code.
+4. Verify the solution with these questions:
+  - Will this be clear to a junior dev?
+  - Is the data flow and logic simple?
+
+FastAPI/Python:
+- Write PEP8 compliant code.
+- Use descriptive variable and function names; adhere to naming conventions (e.g., lowercase with underscores for functions and variables).
+- Add exact typing everywhere. Create custom types or dataclasses as needed.
+- Always use `logger.exception` to properly log exception traces.
+- Use `uv` for package management and running scripts
