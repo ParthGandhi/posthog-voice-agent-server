@@ -5,7 +5,7 @@ from typing import Any
 import requests
 
 POSTHOG_HOST = "https://us.posthog.com"
-PROJECT_ID = "128743"
+PROJECT_ID = "97299"
 
 
 @dataclass
