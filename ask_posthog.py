@@ -4,10 +4,14 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+import posthog
 import requests
-from openai import OpenAI
+from posthog.ai.openai import OpenAI
 
-client = OpenAI()
+posthog.project_api_key = os.getenv("POSTHOG_API_KEY")
+posthog.host = "https://us.i.posthog.com"
+
+client = OpenAI(posthog_client=posthog)
 
 logger = logging.getLogger(__name__)
 
