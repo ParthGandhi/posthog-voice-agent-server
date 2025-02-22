@@ -18,6 +18,11 @@ class UserQueryRequest(BaseModel):
     user_query: str
 
 
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
 @app.post("/query")
 async def handle_query(request: UserQueryRequest):
     logger.info(f"Received query: {request.user_query}")
