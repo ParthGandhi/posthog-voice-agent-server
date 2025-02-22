@@ -1,9 +1,13 @@
+import json
 import logging
 import os
 from dataclasses import dataclass
 from typing import Any
 
 import requests
+from openai import OpenAI
+
+client = OpenAI()
 
 logger = logging.getLogger(__name__)
 
@@ -66,20 +70,80 @@ async def _get_posthog_insights() -> list[PostHogInsight]:
     ]
 
 
+# TODO(pg): paginate possible insights, handle no metric being found
 def _select_posthog_insight(
     insights: list[PostHogInsight], user_input: str
 ) -> PostHogInsight:
     insight_options = []
-    for insight in insights:
+    for i, insight in enumerate(insights):
         if not insight.name and not insight.description:
             logger.warning(
                 f"Skipping insight {insight.id} with empty name and description"
             )
             continue
-        insight_options.append(f"{insight.name} - {insight.description}")
+        insight_options.append(
+            {
+                "id": i,
+                "name": f"{insight.name} - {insight.description}",
+            }
+        )
 
-    print(insight_options)
-    raise ValueError("No insight found")
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Your task is to help me select the right metric. I will give you a user question and a list of available metrics. \nSelect the most appropriate metric based on what the user wants.\n\nFirst think through what the user is asking for and what the options are.  Show the output in <thinking>\n\nThen give me the final answer i",
+                    }
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "[{'id': 0, 'name': 'Pageview funnel, by browser - This example funnel shows how many of your users have completed 3 page views, broken down by browser.'}, {'id': 1, 'name': 'Referring domain (last 14 days) - Shows the most common referring domains for your users over the past 14 days.'}, {'id': 2, 'name': 'Growth accounting - How many of your users are new, returning, resurrecting, or dormant each week.'}, {'id': 3, 'name': 'Retention - Weekly retention of your users.'}, {'id': 4, 'name': 'Weekly active users (WAUs) - Shows the number of unique users that use your app every week.'}, {'id': 5, 'name': 'Daily active users (DAUs) - Shows the number of unique users that use your app every day.'}]",
+                    }
+                ],
+            },
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": user_input}],
+            },
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "metric_id",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "type": "string",
+                            "description": "A detailed explanation of the user's question and the metric that best answers it.",
+                        },
+                        "final_answer": {
+                            "type": "number",
+                            "description": "The unique identifier for the metric.",
+                        },
+                    },
+                    "required": ["explanation", "final_answer"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        temperature=0.3,
+        max_completion_tokens=2048,
+    )
+
+    response_json = json.loads(response.choices[0].message.content)
+    print(response_json)
+
+    return insights[int(response_json["final_answer"])]
 
 
 async def _execute_posthog_query(query: str) -> PostHogResults:
