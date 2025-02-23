@@ -274,7 +274,7 @@ def _combine_summaries(
                 "content": [
                     {
                         "type": "text",
-                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important information and data. Only present the data, do not give suggestions.",
+                        "text": "Your task is to give me a brief professional summary of an analytics dashboard from Posthog. I will give you a dashboard name, and a list of insights from that dashboard. Create a short summary that highlights the important insights about the entire dashboard. Only present the condensed insights, not suggestions. Include key metrics and numbers."
                     }
                 ],
             },
