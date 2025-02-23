@@ -99,7 +99,7 @@ async def _get_posthog_insights() -> list[PostHogInsight]:
 @utils.retry_llm_errors()
 def _select_posthog_insight(
     insights: list[PostHogInsight], user_input: str
-) -> PostHogInsight:
+) -> PostHogInsight | None:
     insight_options = []
     for i, insight in enumerate(insights):
         if not insight.name and not insight.description:
@@ -122,7 +122,7 @@ def _select_posthog_insight(
                 "content": [
                     {
                         "type": "text",
-                        "text": "Your task is to help me select the right metric. I will give you a user question and a list of available metrics. \nSelect the most appropriate metric based on what the user wants.\n\nFirst think through what the user is asking for and what the options are.  Show the output in <thinking>\n\nThen give me the final answer i",
+                        "text": "Your task is to help me select the right metric. I will give you a user question and a list of available metrics. \nSelect the most appropriate metric based on what the user wants.\n\nFirst think through what the user is asking for and what the options are. \n\nThen give me the final answer as the index of the insight that best matches. If no matching index is found, use -1",
                     }
                 ],
             },
@@ -167,28 +167,9 @@ def _select_posthog_insight(
     )
 
     response_json = json.loads(response.choices[0].message.content)  # type: ignore
+    if response_json["final_answer"] == -1:
+        return None
     return insights[int(response_json["final_answer"])]
-
-
-async def _execute_posthog_query(query: str) -> PostHogResults:
-    headers = _get_posthog_headers()
-    data = {
-        "query": {
-            "kind": "HogQLQuery",
-            "query": query,
-        }
-    }
-    response = requests.post(
-        f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/query", headers=headers, json=data
-    )
-
-    response_json = response.json()
-    print(response_json)
-    return PostHogResults(
-        results=response_json["results"],
-        types=response_json["types"],
-        columns=response_json["columns"],
-    )
 
 
 @utils.retry_llm_errors()
@@ -257,6 +238,8 @@ async def _generate_insight_summary(insight: PostHogInsight) -> str:
 async def ask(user_input: str) -> str:
     insights = await _get_posthog_insights()
     insight = _select_posthog_insight(insights, user_input)
+    if not insight:
+        return "I couldn't find a relevant metric that matches your query. Please try rephrasing your question or ask about a different metric."
     summary = await _generate_insight_summary(insight)
     return summary
 
@@ -278,7 +261,7 @@ async def _get_posthog_dashboards() -> list[PostHogDashboard]:
 @utils.retry_llm_errors()
 def _select_dashboard(
     dashboards: list[PostHogDashboard], user_input: str
-) -> PostHogDashboard:
+) -> PostHogDashboard | None:
     dashboard_options = [
         {
             "id": i,
@@ -296,7 +279,7 @@ def _select_dashboard(
                 "content": [
                     {
                         "type": "text",
-                        "text": "Your task is to help select the most relevant dashboard based on a user query. Consider the dashboard names and descriptions to find the best match.",
+                        "text": "Your task is to help select the most relevant dashboard based on a user query. Consider the dashboard names and descriptions to find the best match. \n First think through what the user is asking for and what the options are. \n Then give me the final answer as the index of the dashboard that best matches. If no matching index is found, use -1",
                     }
                 ],
             },
@@ -340,6 +323,8 @@ def _select_dashboard(
     )
 
     response_json = json.loads(response.choices[0].message.content)
+    if response_json["final_answer"] == -1:
+        return None
     return dashboards[int(response_json["final_answer"])]
 
 
@@ -382,6 +367,8 @@ async def _generate_dashboard_summary(
 async def summarize_dashboard(user_input: str) -> str:
     dashboards = await _get_posthog_dashboards()
     dashboard = _select_dashboard(dashboards, user_input)
+    if not dashboard:
+        return "I couldn't find a relevant dashboard that matches your query. Please try rephrasing your question or ask about a different dashboard."
     insights = await _get_dashboard_insights(dashboard.id)
     summary = await _generate_dashboard_summary(dashboard, insights)
     return summary
