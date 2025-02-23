@@ -11,7 +11,7 @@ from posthog.ai.openai import OpenAI
 
 import utils
 
-posthog.project_api_key = os.getenv("POSTHOG_API_KEY")
+posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
 posthog.host = "https://us.i.posthog.com"
 
 client = OpenAI(posthog_client=posthog)
@@ -50,9 +50,9 @@ class PostHogDashboard:
 
 
 def _get_posthog_headers() -> dict:
-    api_key = os.getenv("POSTHOG_API_KEY")
+    api_key = os.getenv("POSTHOG_PERSONAL_API_KEY")
     if not api_key:
-        raise ValueError("POSTHOG_API_KEY is not set")
+        raise ValueError("POSTHOG_PERSONAL_API_KEY is not set")
 
     return {
         "Content-Type": "application/json",
