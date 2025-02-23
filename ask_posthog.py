@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -37,6 +38,13 @@ class PostHogInsight:
     dashboards: list[int]
     result: Any | None
     description: str
+
+
+@dataclass
+class PostHogDashboard:
+    id: int
+    name: str
+    description: str | None
 
 
 def _get_posthog_headers() -> dict:
@@ -237,4 +245,132 @@ async def ask(user_input: str) -> str:
     insights = await _get_posthog_insights()
     insight = _select_posthog_insight(insights, user_input)
     summary = await _generate_insight_summary(insight)
+    return summary
+
+
+async def _get_posthog_dashboards() -> list[PostHogDashboard]:
+    headers = _get_posthog_headers()
+    response = requests.get(
+        f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/dashboards", headers=headers
+    )
+
+    response_json = response.json()
+    return [
+        PostHogDashboard(
+            id=dashboard["id"],
+            name=dashboard["name"],
+            description=dashboard["description"],
+        )
+        for dashboard in response_json["results"]
+    ]
+
+
+def _select_dashboard(
+    dashboards: list[PostHogDashboard], user_input: str
+) -> PostHogDashboard:
+    dashboard_options = [
+        {
+            "id": i,
+            "name": dashboard.name,
+            "description": dashboard.description or "No description",
+        }
+        for i, dashboard in enumerate(dashboards)
+    ]
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Your task is to help select the most relevant dashboard based on a user query. Consider the dashboard names and descriptions to find the best match.",
+                    }
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(dashboard_options),
+                    }
+                ],
+            },
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": user_input}],
+            },
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "dashboard_id",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "type": "string",
+                            "description": "A detailed explanation of why this dashboard was selected",
+                        },
+                        "final_answer": {
+                            "type": "number",
+                            "description": "The index of the selected dashboard",
+                        },
+                    },
+                    "required": ["explanation", "final_answer"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        temperature=0.3,
+    )
+
+    response_json = json.loads(response.choices[0].message.content)
+    return dashboards[int(response_json["final_answer"])]
+
+
+async def _get_dashboard_insights(dashboard_id: int) -> list[PostHogInsight]:
+    insights = await _get_posthog_insights()
+    return [insight for insight in insights if dashboard_id in insight.dashboards]
+
+
+def _combine_summaries(
+    dashboard: PostHogDashboard,
+    insight_summaries: list[str],
+) -> str:
+    summary_parts = [
+        f"Dashboard: {dashboard.name}",
+        f"Description: {dashboard.description or 'No description'}\n",
+        "Key Insights:",
+    ]
+
+    # Add numbered insights
+    for i, summary in enumerate(insight_summaries, 1):
+        summary_parts.append(f"{i}. {summary}")
+
+    return "\n".join(summary_parts)
+
+
+async def _generate_dashboard_summary(
+    dashboard: PostHogDashboard, insights: list[PostHogInsight]
+) -> str:
+    if not insights:
+        return f"Dashboard '{dashboard.name}' has no insights to summarize."
+
+    # Generate summaries for all insights in parallel
+    insight_summaries = await asyncio.gather(
+        *[_generate_insight_summary(insight) for insight in insights]
+    )
+
+    return _combine_summaries(dashboard, insight_summaries)
+
+
+async def summarize_dashboard(user_input: str) -> str:
+    dashboards = await _get_posthog_dashboards()
+    dashboard = _select_dashboard(dashboards, user_input)
+    insights = await _get_dashboard_insights(dashboard.id)
+    summary = await _generate_dashboard_summary(dashboard, insights)
     return summary
