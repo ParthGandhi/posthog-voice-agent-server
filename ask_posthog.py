@@ -324,7 +324,6 @@ async def _generate_dashboard_summary(
     if not insights:
         return f"Dashboard '{dashboard.name}' has no insights to summarize."
 
-    # Generate summaries for all insights in parallel
     insight_summaries = await asyncio.gather(
         *[_generate_insight_summary(insight) for insight in insights]
     )

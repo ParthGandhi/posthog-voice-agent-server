@@ -3,7 +3,6 @@ import logging
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.concurrency import asynccontextmanager
 from pydantic import BaseModel
 
 import ask_posthog
@@ -12,12 +11,7 @@ from ask_posthog import PosthogQueryResult
 load_dotenv()
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +36,6 @@ async def handle_query(request: UserQueryRequest) -> dict:
     return {
         "status": "success",
         "response": response.summary,
-        # empty string so that the client tool is always triggered
         "embed_url": response.embed_url or "",
     }
 
@@ -56,7 +49,6 @@ async def handle_dashboard_summary(request: DashboardSummaryRequest) -> dict:
     return {
         "status": "success",
         "response": response.summary,
-        # empty string so that the client tool is always triggered
         "embed_url": response.embed_url or "",
     }
 
