@@ -8,7 +8,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 POSTHOG_HOST = "https://us.posthog.com"
-PROJECT_ID = "97299"
+PROJECT_ID = "9270"
 
 
 @dataclass

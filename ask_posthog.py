@@ -115,7 +115,7 @@ async def _generate_insight_summary(insight: PostHogInsight) -> str:
                 "content": [
                     {
                         "type": "text",
-                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important bits.",
+                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important information and data. Only present the data, do not give suggestions."
                     }
                 ],
             },
