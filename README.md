@@ -1,5 +1,7 @@
 # Posthog Meeting Copilot
 
+Demo: https://youtu.be/tJT5-SWNWpM
+
 https://docs.google.com/document/d/1fsxiceA97FyWSx8uWC0ulPF6cY7Biusy0dgbcHdMzlk/edit?tab=t.0
 
 #### Linting
