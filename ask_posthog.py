@@ -4,17 +4,19 @@ import logging
 import os
 from dataclasses import dataclass
 
+import utils
 import posthog
 from posthog.ai.openai import OpenAI
+from openai import AsyncOpenAI
 
 import posthog_api
-import utils
 from posthog_api import PostHogDashboard, PostHogInsight
 
 posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
 posthog.host = "https://us.i.posthog.com"
 
 openai_client = OpenAI(posthog_client=posthog)
+openai_async_client = AsyncOpenAI()
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +107,7 @@ def _select_posthog_insight(
 async def _generate_insight_summary(insight: PostHogInsight) -> str:
     analytics_results = insight.result
     analytics_metric_name = f"{insight.name} - {insight.description}"
-    response = openai_client.chat.completions.create(
+    response = await openai_async_client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
             {
