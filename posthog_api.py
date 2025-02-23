@@ -124,4 +124,4 @@ async def get_dashboard_embed_url(dashboard_id: int) -> str | None:
 
 
 def _get_sharing_url(token: str) -> str:
-    return f"{POSTHOG_HOST}/shared/{token}"
+    return f"{POSTHOG_HOST}/embedded/{token}"
