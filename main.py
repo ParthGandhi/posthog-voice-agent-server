@@ -2,11 +2,12 @@ import logging
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response, status
 from fastapi.concurrency import asynccontextmanager
 from pydantic import BaseModel
-
+from svix.webhooks import Webhook, WebhookVerificationError
 import ask_posthog
+import os
 
 load_dotenv()
 
@@ -54,6 +55,22 @@ async def handle_dashboard_summary(request: DashboardSummaryRequest):
         "response": response,
         "embed_url": "https://us.posthog.com/project/97299/insights/JdSPy76X",
     }
+
+
+@app.post("/recall/webhook", status_code=status.HTTP_204_NO_CONTENT)
+async def webhook_handler(request: Request, response: Response):
+    headers = request.headers
+    payload = await request.body()
+
+    try:
+        wh = Webhook(os.getenv("RECALL_WEBHOOK_KEY"))
+        msg = wh.verify(payload, headers)
+        print(msg)
+    except WebhookVerificationError as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return
+
+    # Do someting with the message...
 
 
 if __name__ == "__main__":
