@@ -342,7 +342,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.63.2"
+version = "1.64.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -354,14 +354,14 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e6/1c/11b520deb71f9ea54ced3c52cd6a5f7131215deba63ad07f23982e328141/openai-1.63.2.tar.gz", hash = "sha256:aeabeec984a7d2957b4928ceaa339e2ead19c61cfcf35ae62b7c363368d26360", size = 356902 }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/1d/aae78d8ecc571d672c4a27794a8f248bc46437a22ddcb9c4eb6fd6616c03/openai-1.64.0.tar.gz", hash = "sha256:2861053538704d61340da56e2f176853d19f1dc5704bc306b7597155f850d57a", size = 357058 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/64/db3462b358072387b8e93e6e6a38d3c741a17b4a84171ef01d6c85c63f25/openai-1.63.2-py3-none-any.whl", hash = "sha256:1f38b27b5a40814c2b7d8759ec78110df58c4a614c25f182809ca52b080ff4d4", size = 472282 },
+    { url = "https://files.pythonhosted.org/packages/9a/1a/e62718f311daa26d208800976d7944e5ee6d503e1ea474522b2a15a904bb/openai-1.64.0-py3-none-any.whl", hash = "sha256:20f85cde9e95e9fbb416e3cb5a6d3119c0b28308afd6e3cc47bf100623dac623", size = 472289 },
 ]
 
 [[package]]
 name = "posthog"
-version = "3.15.0"
+version = "3.15.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -370,9 +370,9 @@ dependencies = [
     { name = "requests" },
     { name = "six" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c3/c0/8ea0209118b4da29a169ccdcbf7f81c2022885150af05075b40c4b850bdd/posthog-3.15.0.tar.gz", hash = "sha256:c8503b911fb04b8fbae55ba828f0fda1e2da6e644d135e77b8000a7b82c8dd39", size = 63910 }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/79/22d2352fa0e7f6c5eea7ec13f44440f99964c6263981fb8b80db7636ac36/posthog-3.15.1.tar.gz", hash = "sha256:ea42b83c985ce28f2ae46713469b4107762805250c21807bc456c3fdc5ae940c", size = 63898 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/7e/3b8178c0a0d574db9d305ef9897c79773a62b01618229427b908099b4ccd/posthog-3.15.0-py2.py3-none-any.whl", hash = "sha256:e546edd9a3d9ab4b50cdb57d6e9443826cee2254ea1c3a20cfe1e43e7b54c3c1", size = 74683 },
+    { url = "https://files.pythonhosted.org/packages/0d/5b/2ef421348754e59f0437f05a5f453ef9143cdaf886013424e155076dc39c/posthog-3.15.1-py2.py3-none-any.whl", hash = "sha256:df5700f5cc26b7d08e81d15f0a11b68f4a0f5cec7422984cd4118d5d475e99e6", size = 74684 },
 ]
 
 [[package]]

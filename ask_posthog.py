@@ -5,8 +5,7 @@ import os
 from dataclasses import dataclass
 
 import posthog
-from openai import AsyncOpenAI
-from posthog.ai.openai import OpenAI
+from posthog.ai.openai import AsyncOpenAI, OpenAI
 
 import posthog_api
 from posthog_api import PostHogDashboard, PostHogInsight
@@ -15,7 +14,7 @@ posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
 posthog.host = "https://us.i.posthog.com"
 
 openai_client = OpenAI(posthog_client=posthog)
-openai_async_client = AsyncOpenAI()
+openai_async_client = AsyncOpenAI(posthog_client=posthog)
 
 logger = logging.getLogger(__name__)
 
@@ -274,7 +273,7 @@ def _combine_summaries(
                 "content": [
                     {
                         "type": "text",
-                        "text": "Your task is to give me a brief professional summary of an analytics dashboard from Posthog. I will give you a dashboard name, and a list of insights from that dashboard. Create a short summary that highlights the important insights about the entire dashboard. Only present the condensed insights, not suggestions. Include key metrics and numbers."
+                        "text": "Your task is to give me a brief professional summary of an analytics dashboard from Posthog. I will give you a dashboard name, and a list of insights from that dashboard. Create a short summary that highlights the important insights about the entire dashboard. Only present the condensed insights, not suggestions. Include key metrics and numbers.",
                     }
                 ],
             },
