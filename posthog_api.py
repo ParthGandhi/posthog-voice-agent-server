@@ -97,3 +97,31 @@ async def _get_all_paginated_results(base_url: str) -> list[dict]:
         next_url = response_json.get("next")
 
     return all_results
+
+
+async def get_insight_embed_url(insight_id: int) -> str | None:
+    headers = _get_posthog_headers()
+    url = f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/insights/{insight_id}/sharing/"
+
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    if data.get("enabled") and data.get("access_token"):
+        return _get_sharing_url(data["access_token"])
+    return None
+
+
+async def get_dashboard_embed_url(dashboard_id: int) -> str | None:
+    headers = _get_posthog_headers()
+    url = f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/dashboards/{dashboard_id}/sharing/"
+
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    if data.get("enabled") and data.get("access_token"):
+        return _get_sharing_url(data["access_token"])
+    return None
+
+
+def _get_sharing_url(token: str) -> str:
+    return f"{POSTHOG_HOST}/shared/{token}"
