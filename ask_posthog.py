@@ -60,14 +60,26 @@ def _get_posthog_headers() -> dict:
     }
 
 
-async def _get_posthog_insights() -> list[PostHogInsight]:
+async def _get_all_paginated_results(base_url: str) -> list[dict]:
+    """Helper function to get all paginated results from a PostHog API endpoint"""
     headers = _get_posthog_headers()
-    response = requests.get(
-        f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/insights", headers=headers
-    )
+    all_results = []
+    next_url = base_url
 
-    response_json = response.json()
-    print(response_json)
+    while next_url:
+        response = requests.get(next_url, headers=headers)
+        response_json = response.json()
+
+        all_results.extend(response_json["results"])
+        next_url = response_json.get("next")
+
+    return all_results
+
+
+async def _get_posthog_insights() -> list[PostHogInsight]:
+    base_url = f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/insights"
+    results = await _get_all_paginated_results(base_url)
+
     return [
         PostHogInsight(
             id=insight["id"],
@@ -80,7 +92,7 @@ async def _get_posthog_insights() -> list[PostHogInsight]:
             result=insight["result"],
             description=insight["description"],
         )
-        for insight in response_json["results"]
+        for insight in results
     ]
 
 
@@ -250,19 +262,16 @@ async def ask(user_input: str) -> str:
 
 
 async def _get_posthog_dashboards() -> list[PostHogDashboard]:
-    headers = _get_posthog_headers()
-    response = requests.get(
-        f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/dashboards", headers=headers
-    )
+    base_url = f"{POSTHOG_HOST}/api/projects/{PROJECT_ID}/dashboards"
+    results = await _get_all_paginated_results(base_url)
 
-    response_json = response.json()
     return [
         PostHogDashboard(
             id=dashboard["id"],
             name=dashboard["name"],
             description=dashboard["description"],
         )
-        for dashboard in response_json["results"]
+        for dashboard in results
     ]
 
 
