@@ -11,8 +11,8 @@ from pydantic import BaseModel
 from svix.webhooks import Webhook, WebhookVerificationError
 import ask_posthog
 import os
-from recall_api import RecallEvent
-from agent import process_agent_request
+from recall_api import RecallEvent, RecallEventType
+from agent import process_agent_request, process_recording_started
 
 load_dotenv()
 
@@ -92,6 +92,11 @@ async def webhook_handler(request: Request, response: Response):
         logger.info(f"Event sub_code: {recall_event.sub_code}")
         logger.info(f"Updated at: {recall_event.updated_at}")
         
+        # Check if this is the IN_CALL_RECORDING event
+        if recall_event.event_type == RecallEventType.IN_CALL_RECORDING.value:
+            logger.info("Bot is now recording, generating audio response")
+            await process_recording_started(recall_event.bot_id)
+            
     except WebhookVerificationError as e:
         logger.error(f"Webhook verification failed: {str(e)}")
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -131,7 +136,7 @@ async def handle_transcript(request: Request, response: Response):
         logger.info(f"Transcript text: {transcript_text}")
         
         # Make the trigger phrase more specific
-        if "daily standup" in transcript_text.strip().lower():
+        if "daily stand up" in transcript_text.strip().lower():
             logger.info("Found trigger phrase in transcript")
             processed_transcripts.add(transcript_id)  # Mark this transcript as processed
             await process_agent_request(bot_id)

@@ -19,6 +19,7 @@ class RecallEventType(Enum):
     CALL_ENDED = "bot.call_ended"
     DONE = "bot.done"
     FATAL = "bot.fatal"
+    RECORDING_PROCESSING = "recording.processing"
 
 
 class RecallEvent:
@@ -69,7 +70,9 @@ class RecallEvent:
             RecallEventType.DONE.value: 
                 "The bot has shut down. If bot produced in_call_recording event, the video is uploaded and available for download.",
             RecallEventType.FATAL.value: 
-                "The bot has encountered an error that prevented it from joining the call."
+                "The bot has encountered an error that prevented it from joining the call.",
+            RecallEventType.RECORDING_PROCESSING.value: 
+                "The bot is processing the recording."
         }
         return event_descriptions.get(self.event_type, "Unknown event type")
 
@@ -108,12 +111,13 @@ async def send_audio_to_recall(bot_id: str, audio_b64: str) -> bool:
         logger.error(f"Failed to send audio to Recall API: {str(e)}")
         return False
 
-async def send_screenshare_to_recall(bot_id: str) -> bool:
+async def send_screenshare_to_recall(bot_id: str, image_b64: str) -> bool:
     """
     Sends a screenshare request to the Recall API.
 
     Args:
         bot_id (str): The ID of the bot to send screenshare to
+        image_b64 (str): Base64 encoded image data
 
     Returns:
         bool: True if successful, False otherwise
@@ -121,7 +125,8 @@ async def send_screenshare_to_recall(bot_id: str) -> bool:
     url = f"https://us-west-2.recall.ai/api/v1/bot/{bot_id}/output_screenshare/"
 
     payload = {
-        "kind": "jpeg"
+        "kind": "jpeg",
+        "b64_data": image_b64
     }
     
     headers = {
