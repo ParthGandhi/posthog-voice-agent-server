@@ -42,7 +42,8 @@ async def handle_query(request: UserQueryRequest) -> dict:
     return {
         "status": "success",
         "response": response.summary,
-        "embed_url": response.embed_url,
+        # empty string so that the client tool is always triggered
+        "embed_url": response.embed_url or "",
     }
 
 
@@ -55,7 +56,8 @@ async def handle_dashboard_summary(request: DashboardSummaryRequest) -> dict:
     return {
         "status": "success",
         "response": response.summary,
-        "embed_url": response.embed_url,
+        # empty string so that the client tool is always triggered
+        "embed_url": response.embed_url or "",
     }
 
 
