@@ -4,12 +4,12 @@ import logging
 import os
 from dataclasses import dataclass
 
-import utils
 import posthog
-from posthog.ai.openai import OpenAI
 from openai import AsyncOpenAI
+from posthog.ai.openai import OpenAI
 
 import posthog_api
+import utils
 from posthog_api import PostHogDashboard, PostHogInsight
 
 posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
@@ -115,7 +115,7 @@ async def _generate_insight_summary(insight: PostHogInsight) -> str:
                 "content": [
                     {
                         "type": "text",
-                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important information and data. Only present the data, do not give suggestions."
+                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important information and data. Only present the data, do not give suggestions.",
                     }
                 ],
             },
@@ -256,19 +256,71 @@ async def _get_dashboard_insights(dashboard_id: int) -> list[PostHogInsight]:
 
 def _combine_summaries(
     dashboard: PostHogDashboard,
+    insights: list[PostHogInsight],
     insight_summaries: list[str],
 ) -> str:
     summary_parts = [
-        f"Dashboard: {dashboard.name}",
-        f"Description: {dashboard.description or 'No description'}\n",
-        "Key Insights:",
+        f"Dashboard: {dashboard.name} - {dashboard.description or ''}",
+        "Insights:",
     ]
 
     # Add numbered insights
-    for i, summary in enumerate(insight_summaries, 1):
-        summary_parts.append(f"{i}. {summary}")
+    for i, (insight, summary) in enumerate(zip(insights, insight_summaries), 1):
+        summary_parts.append(f"{i}. {insight.name} - {insight.description} - {summary}")
 
-    return "\n".join(summary_parts)
+    combined_summary_str = "\n".join(summary_parts)
+
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Your task is to give me a brief professional summary of a analytics result from Posthog. I will give you the query name and the results json, create a short summary that gives the gist of the metrics highlighting the important information and data. Only present the data, do not give suggestions.",
+                    }
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": combined_summary_str,
+                    }
+                ],
+            },
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "analytics_summary",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "type": "string",
+                            "description": "A detailed analysis of the dashboard and the insights",
+                        },
+                        "final_answer": {
+                            "type": "string",
+                            "description": "The summary of the dashboard",
+                        },
+                    },
+                    "required": ["explanation", "final_answer"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        temperature=0.3,
+        max_completion_tokens=2048,
+        top_p=1,
+    )
+    response_json = json.loads(response.choices[0].message.content)  # type: ignore
+    print(response_json)
+    return response_json["final_answer"]
 
 
 async def _generate_dashboard_summary(
@@ -282,7 +334,7 @@ async def _generate_dashboard_summary(
         *[_generate_insight_summary(insight) for insight in insights]
     )
 
-    return _combine_summaries(dashboard, insight_summaries)
+    return _combine_summaries(dashboard, insights, insight_summaries)
 
 
 async def summarize_dashboard(user_input: str) -> PosthogQueryResult:
