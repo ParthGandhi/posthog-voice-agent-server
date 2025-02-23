@@ -9,7 +9,6 @@ from openai import AsyncOpenAI
 from posthog.ai.openai import OpenAI
 
 import posthog_api
-import utils
 from posthog_api import PostHogDashboard, PostHogInsight
 
 posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
@@ -27,7 +26,6 @@ class PosthogQueryResult:
     embed_url: str | None
 
 
-@utils.retry_llm_errors()
 def _select_posthog_insight(
     insights: list[PostHogInsight], user_input: str
 ) -> PostHogInsight | None:
@@ -103,7 +101,6 @@ def _select_posthog_insight(
     return insights[int(response_json["final_answer"])]
 
 
-@utils.retry_llm_errors()
 async def _generate_insight_summary(insight: PostHogInsight) -> str:
     analytics_results = insight.result
     analytics_metric_name = f"{insight.name} - {insight.description}"
@@ -179,7 +176,6 @@ async def ask(user_input: str) -> PosthogQueryResult:
     return PosthogQueryResult(summary=summary, embed_url=embed_url)
 
 
-@utils.retry_llm_errors()
 def _select_dashboard(
     dashboards: list[PostHogDashboard], user_input: str
 ) -> PostHogDashboard | None:
