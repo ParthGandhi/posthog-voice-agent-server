@@ -14,7 +14,7 @@ from posthog_api import PostHogDashboard, PostHogInsight
 posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
 posthog.host = "https://us.i.posthog.com"
 
-client = OpenAI(posthog_client=posthog)
+openai_client = OpenAI(posthog_client=posthog)
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def _select_posthog_insight(
             }
         )
 
-    response = client.chat.completions.create(
+    response = openai_client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
             {
@@ -105,7 +105,7 @@ def _select_posthog_insight(
 async def _generate_insight_summary(insight: PostHogInsight) -> str:
     analytics_results = insight.result
     analytics_metric_name = f"{insight.name} - {insight.description}"
-    response = client.chat.completions.create(
+    response = openai_client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
             {
@@ -190,7 +190,7 @@ def _select_dashboard(
         for i, dashboard in enumerate(dashboards)
     ]
 
-    response = client.chat.completions.create(
+    response = openai_client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
             {
