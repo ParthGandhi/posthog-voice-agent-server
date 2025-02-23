@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+from dataclasses import dataclass
 
 import posthog
 from posthog.ai.openai import OpenAI
@@ -16,6 +17,12 @@ posthog.host = "https://us.i.posthog.com"
 client = OpenAI(posthog_client=posthog)
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PosthogQueryResult:
+    summary: str
+    embed_url: str | None
 
 
 @utils.retry_llm_errors()
@@ -157,13 +164,17 @@ async def _generate_insight_summary(insight: PostHogInsight) -> str:
     return response_json["final_answer"]
 
 
-async def ask(user_input: str) -> str:
+async def ask(user_input: str) -> PosthogQueryResult:
     insights = await posthog_api.get_all_insights()
     insight = _select_posthog_insight(insights, user_input)
     if not insight:
-        return "I couldn't find a relevant metric that matches your query. Please try rephrasing your question or ask about a different metric."
+        return PosthogQueryResult(
+            summary="I couldn't find a relevant metric that matches your query. Please try rephrasing your question or ask about a different metric.",
+            embed_url=None,
+        )
     summary = await _generate_insight_summary(insight)
-    return summary
+    embed_url = await posthog_api.get_insight_embed_url(insight.id)
+    return PosthogQueryResult(summary=summary, embed_url=embed_url)
 
 
 @utils.retry_llm_errors()
@@ -272,11 +283,15 @@ async def _generate_dashboard_summary(
     return _combine_summaries(dashboard, insight_summaries)
 
 
-async def summarize_dashboard(user_input: str) -> str:
+async def summarize_dashboard(user_input: str) -> PosthogQueryResult:
     dashboards = await posthog_api.get_all_dashboards()
     dashboard = _select_dashboard(dashboards, user_input)
     if not dashboard:
-        return "I couldn't find a relevant dashboard that matches your query. Please try rephrasing your question or ask about a different dashboard."
+        return PosthogQueryResult(
+            summary="I couldn't find a relevant dashboard that matches your query. Please try rephrasing your question or ask about a different dashboard.",
+            embed_url=None,
+        )
     insights = await _get_dashboard_insights(dashboard.id)
     summary = await _generate_dashboard_summary(dashboard, insights)
-    return summary
+    embed_url = await posthog_api.get_dashboard_embed_url(dashboard.id)
+    return PosthogQueryResult(summary=summary, embed_url=embed_url)

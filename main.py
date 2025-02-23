@@ -7,6 +7,7 @@ from fastapi.concurrency import asynccontextmanager
 from pydantic import BaseModel
 
 import ask_posthog
+from ask_posthog import PosthogQueryResult
 
 load_dotenv()
 
@@ -35,24 +36,26 @@ async def root():
 
 
 @app.post("/query")
-async def handle_query(request: UserQueryRequest):
+async def handle_query(request: UserQueryRequest) -> dict:
     logger.info(f"Received query: {request.user_query}")
-    response = await ask_posthog.ask(request.user_query)
+    response: PosthogQueryResult = await ask_posthog.ask(request.user_query)
     return {
         "status": "success",
-        "response": response,
-        "embed_url": "https://us.posthog.com/project/97299/insights/JdSPy76X",
+        "response": response.summary,
+        "embed_url": response.embed_url,
     }
 
 
 @app.post("/dashboard_summary")
-async def handle_dashboard_summary(request: DashboardSummaryRequest):
+async def handle_dashboard_summary(request: DashboardSummaryRequest) -> dict:
     logger.info(f"Received dashboard summary request: {request.user_query}")
-    response = await ask_posthog.summarize_dashboard(request.user_query)
+    response: PosthogQueryResult = await ask_posthog.summarize_dashboard(
+        request.user_query
+    )
     return {
         "status": "success",
-        "response": response,
-        "embed_url": "https://us.posthog.com/project/97299/insights/JdSPy76X",
+        "response": response.summary,
+        "embed_url": response.embed_url,
     }
 
 
