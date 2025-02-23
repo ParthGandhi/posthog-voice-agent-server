@@ -125,6 +125,23 @@ wheels = [
 ]
 
 [[package]]
+name = "elevenlabs"
+version = "1.51.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "requests" },
+    { name = "typing-extensions" },
+    { name = "websockets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8a/37/f56c4231fccec1641b5a32c2181e9eea37b06d1dd90d0615fc822a97b2b3/elevenlabs-1.51.0.tar.gz", hash = "sha256:a5093dbce5c8a40694424266bae5a16792b20994b221647d7e85676be37df32b", size = 130474 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d8/c4/71621d5355382add77dfa8ce0e541d38d4f12e2840de100faeb45cc3063e/elevenlabs-1.51.0-py3-none-any.whl", hash = "sha256:3c500e08f4fb9cf3503617fd5f150e0fe574ca6670a5bc28eb4a440e3491c453", size = 294720 },
+]
+
+[[package]]
 name = "email-validator"
 version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -402,6 +419,7 @@ name = "posthog-voice-agent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "elevenlabs" },
     { name = "fastapi", extra = ["standard"] },
     { name = "openai" },
     { name = "posthog" },
@@ -419,6 +437,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "elevenlabs", specifier = ">=1.51.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.8" },
     { name = "openai", specifier = ">=1.63.2" },
     { name = "posthog", specifier = ">=3.15.0" },
