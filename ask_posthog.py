@@ -13,8 +13,8 @@ from posthog_api import PostHogDashboard, PostHogInsight
 posthog.project_api_key = os.getenv("POSTHOG_PROJECT_API_KEY")
 posthog.host = "https://us.i.posthog.com"
 
-openai_client = OpenAI(posthog_client=posthog)
-openai_async_client = AsyncOpenAI(posthog_client=posthog)
+openai_client = OpenAI(posthog_client=posthog)  # type: ignore
+openai_async_client = AsyncOpenAI(posthog_client=posthog)  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +238,7 @@ def _select_dashboard(
         temperature=0.3,
     )
 
-    response_json = json.loads(response.choices[0].message.content)
+    response_json = json.loads(response.choices[0].message.content)  # type: ignore
     if response_json["final_answer"] == -1:
         return None
     return dashboards[int(response_json["final_answer"])]
