@@ -21,4 +21,8 @@ FastAPI/Python:
 - Use descriptive variable and function names; adhere to naming conventions (e.g., lowercase with underscores for functions and variables).
 - Add exact typing everywhere. Create custom types or dataclasses as needed.
 - Always use `logger.exception` to properly log exception traces.
-- Use `uv` for package management and running scripts
+
+Dependencies:
+- `uv` for package management and running scripts
+- `FastAPI`
+- `SQLModel` (https://github.com/fastapi/sqlmodel)

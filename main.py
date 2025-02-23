@@ -3,13 +3,20 @@ import logging
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.concurrency import asynccontextmanager
 from pydantic import BaseModel
 
 import ask_posthog
 
 load_dotenv()
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 logger = logging.getLogger(__name__)
 
